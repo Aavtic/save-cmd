@@ -9,6 +9,7 @@ typedef struct {
     bool insert;
     bool execute;
     bool usage;
+    // TODO: Change these str pointer to arrays to it actually owns them00
     char* search;
     char* command;
     char* description;
@@ -40,12 +41,50 @@ void print_usage(FILE *file) {
 }
 
 void validate_arguments(CommandLineArguments cla) {
+    // If both command and search is specified.
+    // Here it is not possible to identify what flag the user was actually trying to execute
+    if (cla.command != NULL && cla.search != NULL) {
+        fprintf(stderr, "%s, %s\t\t%s\n", cla.command, cla.search, "ERROR: Use of both /<search> and \"<command>\" Flags.\nBoth of these commands cannot be used togather");
+        print_usage(stderr);
+        exit(0);
+    }
     if (cla.command != NULL) {
         if (cla.search != NULL || cla.usage || cla.execute || cla.insert) {
             char incorrect_flags_used[256] = "";
 
             if (cla.search != NULL) {
-                strcat(incorrect_flags_used, "/<search-term>\t\tSearch flag used\n");
+                char* message = "\t\tSearch flag used\n";
+                char* buffer = malloc(strlen(cla.search) + 1 + strlen(message));
+                sprintf(buffer,"%s%s", cla.search, message);
+                strcat(incorrect_flags_used, buffer);
+            }
+
+            if (cla.insert) {
+                strcat(incorrect_flags_used, "-i\t\tInsert flag used\n");
+            }
+
+            if (cla.execute) {
+                strcat(incorrect_flags_used, "-x\t\tExecute flag used\n");
+            }
+
+            if (cla.usage) {
+                strcat(incorrect_flags_used, "-h | --help\t\tFlag used");
+            }
+
+            fprintf(stderr, "%s\n", "ERROR: Use of one or more flags which cannot be used togather when adding a command\n");
+            fprintf(stderr, "%s\n", incorrect_flags_used);
+            print_usage(stderr);
+            exit(0);
+        }
+    } else if (cla.search != NULL) {
+        if (cla.command != NULL || cla.usage) {
+            char incorrect_flags_used[256] = "";
+
+            if (cla.command != NULL) {
+                char* message = "\t\tCommand flag used\n";
+                char* buffer = malloc(strlen(cla.command) + 1 + strlen(message));
+                sprintf(buffer,"%s%s", cla.command, message);
+                strcat(incorrect_flags_used, buffer);
             }
 
             if (cla.insert) {
