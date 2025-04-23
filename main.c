@@ -46,7 +46,7 @@ void validate_arguments(CommandLineArguments cla) {
     if (cla.command != NULL && cla.search != NULL) {
         fprintf(stderr, "%s, %s\t\t%s\n", cla.command, cla.search, "ERROR: Use of both /<search> and \"<command>\" Flags.\nBoth of these commands cannot be used togather");
         print_usage(stderr);
-        exit(0);
+        exit(1);
     }
     if (cla.command != NULL) {
         if (cla.search != NULL || cla.usage || cla.execute || cla.insert) {
@@ -74,7 +74,7 @@ void validate_arguments(CommandLineArguments cla) {
             fprintf(stderr, "%s\n", "ERROR: Use of one or more flags which cannot be used togather when adding a command\n");
             fprintf(stderr, "%s\n", incorrect_flags_used);
             print_usage(stderr);
-            exit(0);
+            exit(1);
         }
     } else if (cla.search != NULL) {
         if (cla.command != NULL || cla.usage) {
@@ -102,7 +102,7 @@ void validate_arguments(CommandLineArguments cla) {
             fprintf(stderr, "%s\n", "ERROR: Use of one or more flags which cannot be used togather when adding a command\n");
             fprintf(stderr, "%s\n", incorrect_flags_used);
             print_usage(stderr);
-            exit(0);
+            exit(1);
         }
     }
 }
@@ -129,7 +129,7 @@ void parse_arguments(int argc, char* argv[]) {
             } else {
                 fprintf(stderr, "%s\n", "ERROR: -d flag found but no description provided!" );
                 print_usage(stderr);
-                exit(0);
+                exit(1);
             }
         } else if (argument[0] == '/') {
             argument++;
@@ -147,7 +147,7 @@ void parse_arguments(int argc, char* argv[]) {
             } else {
                 fprintf(stderr, "%s: %s\n", "ERROR: Usage of unknown or extra arguments", argument);
                 print_usage(stderr);
-                exit(0);
+                exit(1);
             }
         }
     }
