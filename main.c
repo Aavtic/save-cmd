@@ -2,6 +2,7 @@
 #include <stdbool.h>
 #include <string.h>
 #include <stdlib.h>
+
 /*#include "cJSON.h"*/
 
 typedef struct {
@@ -30,14 +31,41 @@ typedef struct {
 // save-cmd /hello -i
 
 
-/*void validate_arguments(CommandLineArguments cla) {*/
-/*}*/
 
 void print_usage(FILE *file) {
     const char* usage = "Usage: save-cmd  [-i] [-x]\n\
         [-d <description>] [/<search>]\n\
         <file> ...";
     fprintf(file, "%s\n", usage);
+}
+
+void validate_arguments(CommandLineArguments cla) {
+    if (cla.command != NULL) {
+        if (cla.search != NULL || cla.usage || cla.execute || cla.insert) {
+            char incorrect_flags_used[256] = "";
+
+            if (cla.search != NULL) {
+                strcat(incorrect_flags_used, "/<search-term>\t\tSearch flag used\n");
+            }
+
+            if (cla.insert) {
+                strcat(incorrect_flags_used, "-i\t\tInsert flag used\n");
+            }
+
+            if (cla.execute) {
+                strcat(incorrect_flags_used, "-x\t\tExecute flag used\n");
+            }
+
+            if (cla.usage) {
+                strcat(incorrect_flags_used, "-h | --help\t\tFlag used");
+            }
+
+            fprintf(stderr, "%s\n", "ERROR: Use of one or more flags which cannot be used togather when adding a command\n");
+            fprintf(stderr, "%s\n", incorrect_flags_used);
+            print_usage(stderr);
+            exit(0);
+        }
+    }
 }
 
 void parse_arguments(int argc, char* argv[]) {
@@ -71,6 +99,7 @@ void parse_arguments(int argc, char* argv[]) {
             print_usage(stdout);
             exit(0);
         } else if (argument[0] == '/' || argument[0] == '-') {
+            fprintf(stderr, "%s: %s\n", "ERROR: Usage of unknown flag", argument);
             print_usage(stderr);
         } else {
             // case for command to save.
@@ -83,6 +112,8 @@ void parse_arguments(int argc, char* argv[]) {
             }
         }
     }
+
+    validate_arguments(cla);
 }
 
 int main(int argc, char* argv[]) {
