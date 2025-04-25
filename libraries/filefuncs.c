@@ -22,7 +22,7 @@
 //
 
 int write_to_file(char* file_name, char* json_str) {
-    FILE* file_ptr = fopen(file_name, "a+");
+    FILE* file_ptr = fopen(file_name, "w");
 
     if (file_ptr == NULL) {
         perror("Error while opening file");
@@ -49,8 +49,10 @@ char* add_to_json(char* original_json, Command command) {
     cJSON* original;
     if (original_json != NULL) {
         original = cJSON_Parse(original_json);
+        printf("NULL\n");
     } else {
         original = cJSON_CreateObject();
+        printf("NOT NULL\n");
     }
 
     if (original == NULL) {
