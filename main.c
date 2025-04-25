@@ -2,6 +2,11 @@
 #include <stdbool.h>
 #include <string.h>
 #include <stdlib.h>
+#include <time.h>
+
+#include "libraries/filefuncs.h"
+
+#define FILE_NAME "commands.json"
 
 /*#include "cJSON.h"*/
 
@@ -36,11 +41,11 @@ typedef struct {
 void print_usage(FILE *file) {
     const char* usage = "Usage: save-cmd  [-i] [-x]\n\
         [-d <description>] [/<search>]\n\
-        <file> ...";
+        <command> ...";
     fprintf(file, "%s\n", usage);
 }
 
-void validate_arguments(CommandLineArguments cla) {
+CommandLineArguments validate_arguments(CommandLineArguments cla) {
     // If both command and search is specified.
     // Here it is not possible to identify what flag the user was actually trying to execute
     if (cla.command != NULL && cla.search != NULL) {
@@ -105,9 +110,55 @@ void validate_arguments(CommandLineArguments cla) {
             exit(1);
         }
     }
+
+    return cla;
 }
 
-void parse_arguments(int argc, char* argv[]) {
+void save_cmd(CommandLineArguments cla) {
+    // Check if the file needs to be saved
+
+    if (cla.command != NULL) {
+        Command* cmd = (Command*) malloc(sizeof(Command));
+        cmd->command = cla.command;
+        char command_copy[strlen(cmd->command) + 1];
+        strcpy(command_copy, cmd->command);
+
+        char* binary_name = strtok(command_copy, " ");
+        // Get the first word. i.e binary name
+        if (binary_name != NULL) {
+            cmd->binary_name = binary_name;
+        } else {
+            cmd->binary_name = cla.command;
+        }
+
+        if (cla.description != NULL) {
+            cmd->description = cla.description;
+        } else {
+            cmd->description = "";
+        }
+
+        time_t seconds = time(NULL);
+        cmd->timestamp = seconds;
+
+        // Save it to json
+
+        char* file_contents = read_entire_file(FILE_NAME);
+
+        if (strlen(file_contents) == 0) {
+            file_contents = NULL;
+        }
+
+        char* new_json = add_to_json(file_contents, *cmd);
+        write_to_file("commands.json", new_json);
+
+        printf("[+] Contents written successfully!");
+
+    } else {
+        printf("Search is not yet implemented. lol");
+    }
+}
+
+CommandLineArguments parse_arguments(int argc, char* argv[]) {
     // Skip the binary name
     argv++;
     argc--;
@@ -152,11 +203,13 @@ void parse_arguments(int argc, char* argv[]) {
         }
     }
 
-    validate_arguments(cla);
+    return validate_arguments(cla);
 }
 
 int main(int argc, char* argv[]) {
-    parse_arguments(argc, argv);
+    // TODO: if no arguments are given. Print all the saved commands.
+    CommandLineArguments cla = parse_arguments(argc, argv);
+    save_cmd(cla);
 
     return 0;
 }

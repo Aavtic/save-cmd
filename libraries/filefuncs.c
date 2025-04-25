@@ -49,10 +49,8 @@ char* add_to_json(char* original_json, Command command) {
     cJSON* original;
     if (original_json != NULL) {
         original = cJSON_Parse(original_json);
-        printf("NULL\n");
     } else {
         original = cJSON_CreateObject();
-        printf("NOT NULL\n");
     }
 
     if (original == NULL) {
@@ -60,7 +58,10 @@ char* add_to_json(char* original_json, Command command) {
         exit(1);
     }
 
-    cJSON_AddItemToObject(original, "AddTimeStampHere", new_json);
+    char timestamp[10];
+    sprintf(timestamp, "%ld", command.timestamp);
+
+    cJSON_AddItemToObject(original, timestamp, new_json);
 
     char* final_json = cJSON_Print(original);
 
@@ -87,4 +88,15 @@ char* read_entire_file(char* filename) {
     fclose(file_ptr);
 
     return buffer;
+}
+
+void search_json(char* json_str) {
+    cJSON* json = cJSON_Parse(json_str);
+
+    if (json == NULL) {
+        printf("ERROR: Can't parse json");
+        exit(1);
+    }
+
+    printf("Child: %s\n", json->child->string);
 }

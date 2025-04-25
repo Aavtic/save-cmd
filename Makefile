@@ -1,5 +1,5 @@
-compile: main.c
-	gcc -o main -Wall -Werror -Wextra -ggdb main.c
+compile: main.c libraries/filefuncs.c
+	gcc -o main -Wall -Werror -Wextra -ggdb main.c libraries/filefuncs.c libraries/cJSON.o
 
 run: main
 	./main
