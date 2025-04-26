@@ -151,10 +151,11 @@ void save_cmd(CommandLineArguments cla) {
         char* new_json = add_to_json(file_contents, *cmd);
         write_to_file("commands.json", new_json);
 
-        printf("[+] Contents written successfully!");
+        printf("[+] Contents written successfully!\n");
 
-    } else {
-        printf("Search is not yet implemented. lol");
+    } else if (cla.search != NULL) {
+        char* json_str = read_entire_file(FILE_NAME);
+        search_json(json_str, cla.search);
     }
 }
 
@@ -208,6 +209,11 @@ CommandLineArguments parse_arguments(int argc, char* argv[]) {
 
 int main(int argc, char* argv[]) {
     // TODO: if no arguments are given. Print all the saved commands.
+    if (argc == 1) {
+        char* file_contents = read_entire_file(FILE_NAME);
+        print_json(file_contents);
+        exit(0);
+    }
     CommandLineArguments cla = parse_arguments(argc, argv);
     save_cmd(cla);
 
