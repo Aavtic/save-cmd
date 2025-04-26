@@ -1,11 +1,11 @@
-compile: main.c libraries/filefuncs.c
-	gcc -o main -Wall -Werror -Wextra -ggdb main.c libraries/filefuncs.c libraries/cJSON.o
+compile: save-cmd.c libraries/filefuncs.c
+	gcc -o save-cmd -Wall -Werror -Wextra -ggdb save-cmd.c libraries/filefuncs.c libraries/cJSON.o
 
-run: main
-	./main
+run: save-cmd
+	./save-cmd
 
-clean: main
-	rm main
+clean: save-cmd
+	rm save-cmd
 
 test: test.c libraries/filefuncs.c
 	gcc -o test -Wall -Werror -Wextra -ggdb test.c libraries/cJSON.o libraries/filefuncs.c
