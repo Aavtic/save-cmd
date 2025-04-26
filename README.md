@@ -1,5 +1,3 @@
-> [!WARNING]
-Under Construction...
 
 # Save Commands
 
@@ -29,21 +27,6 @@ Just run the program without any arguments to show all the saved commands.
 ```
 save-cmd
 ```
-
-
-## Installation
-
-First clone this repository
-```sh
-```
-
-
-## Installation
-
-First clone this repository
-```sh
-```
-
 
 ## Installation
 
