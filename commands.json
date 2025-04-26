@@ -1,0 +1,22 @@
+{
+	"1745590249":	{
+		"binary_name":	"ls",
+		"command":	"ls -itx",
+		"description":	"Get files with latest changes"
+	},
+	"1745590318":	{
+		"binary_name":	"du",
+		"command":	"du -sh",
+		"description":	"Get size of files or directory"
+	},
+	"1745669174":	{
+		"binary_name":	"git",
+		"command":	"git restore --source <commit hash> filename",
+		"description":	"Restore a file to it's older commit form in git"
+	},
+	"1745692429":	{
+		"binary_name":	"ln",
+		"command":	"ln -s <source file> <destination file>",
+		"description":	"Create a link to a file."
+	}
+}
