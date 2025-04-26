@@ -5,6 +5,9 @@
 #include "cJSON.h"
 #include "filefuncs.h"
 
+
+static const char* ARRAY[JSON_LENGTH] = {"binary_name", "command", "description"};
+
 // Structure of Json File
 // {
 //     "2034820389": {
@@ -90,13 +93,126 @@ char* read_entire_file(char* filename) {
     return buffer;
 }
 
-void search_json(char* json_str) {
+bool  check_string_exists(char* string, char* pattern) {
+    size_t size_str = strlen(string);
+    size_t size_pattern = strlen(pattern);
+
+    if (size_pattern > size_str)
+        return false;
+
+    for (size_t i=0; i<=size_str - size_pattern; ++i) {
+        if (strncmp(&string[i], pattern, size_pattern) == 0)
+            return true;
+    }
+
+    return false;
+}
+
+
+void print_command_info(char* binary_name, char* command, char* description) {
+    printf("Binary Name: %s\n", binary_name);
+    printf("Command    : %s\n", command);
+    printf("Description: %s\n", description);
+}
+
+bool search_json(char* json_str, char* pattern) {
     cJSON* json = cJSON_Parse(json_str);
 
     if (json == NULL) {
         printf("ERROR: Can't parse json");
         exit(1);
     }
+    json = json->child;
 
-    printf("Child: %s\n", json->child->string);
+    bool found = false;
+
+    while (json != NULL) {
+        cJSON* binary_name_json = cJSON_GetObjectItemCaseSensitive(json, "binary_name");
+        cJSON* command_json = cJSON_GetObjectItemCaseSensitive(json, "command");
+        cJSON* description_json = cJSON_GetObjectItemCaseSensitive(json, "description");
+
+        char* binary_name;
+        char* command;
+        char* description;
+
+        if ((binary_name_json != NULL && binary_name_json->valuestring != NULL) && 
+                (command_json != NULL && command_json->valuestring != NULL)) {
+
+            binary_name = binary_name_json->valuestring;
+            command = command_json->valuestring;
+        } else {
+            printf("%s", json->string);
+            printf("Faulty JSON\n");
+            return false;
+        }
+
+        if (description_json != NULL && description_json->valuestring != NULL) {
+            if (strcmp(description_json->valuestring, "") == 0)
+                description = "No Description";
+            else
+                description = description_json->valuestring;
+        }
+
+        for (int i=0; i<JSON_LENGTH; ++i) {
+            const char* field = ARRAY[i];
+
+            cJSON* json_field = cJSON_GetObjectItemCaseSensitive(json, field);
+            if (json_field != NULL && json_field->valuestring != NULL) {
+                char copy_str[strlen(json_field->valuestring) + 1];
+                strcpy(copy_str, json_field->valuestring);
+                copy_str[strlen(json_field->valuestring)] = '\0';
+                if (check_string_exists(copy_str, pattern)) {
+                    print_command_info(binary_name, command, description);
+                    printf("\n");
+                    found = true;
+                    break;
+                }
+            }
+        }
+        json = json->next;
+    }
+    return found;
+}
+
+void print_json(char* json_str) {
+    cJSON* json = cJSON_Parse(json_str);
+
+    if (json == NULL) {
+        printf("ERROR: Can't parse json");
+        exit(1);
+    }
+    json = json->child;
+
+    while (json != NULL) {
+        cJSON* binary_name_json = cJSON_GetObjectItemCaseSensitive(json, "binary_name");
+        cJSON* command_json = cJSON_GetObjectItemCaseSensitive(json, "command");
+        cJSON* description_json = cJSON_GetObjectItemCaseSensitive(json, "description");
+
+        char* binary_name;
+        char* command;
+        char* description;
+
+        if ((binary_name_json != NULL && binary_name_json->valuestring != NULL) && 
+                (command_json != NULL && command_json->valuestring != NULL)) {
+
+            binary_name = binary_name_json->valuestring;
+            command = command_json->valuestring;
+        } else {
+            printf("%s", json->string);
+            printf("Faulty JSON\n");
+            return;
+        }
+
+        if (description_json != NULL && description_json->valuestring != NULL) {
+            if (strcmp(description_json->valuestring, "") == 0)
+                description = "No Description";
+            else
+                description = description_json->valuestring;
+        }
+
+        print_command_info(binary_name, command, description);
+        printf("\n");
+
+        json = json->next;
+    }
 }
