@@ -32,11 +32,11 @@ typedef struct {
 
 // save-cmd "rm -rf /*"
 // save-cmd "rm -rf /*" -d "Best command ever!"
+// save-cmd -d "description" !! <- Get the last executed command and save it
+
 // save-cmd /hello
 // save-cmd /hello -x
 // save-cmd /hello -i
-
-
 
 void print_usage(FILE *file) {
     const char* usage = "Usage: save-cmd  [-i] [-x]\n\
@@ -49,7 +49,7 @@ CommandLineArguments validate_arguments(CommandLineArguments cla) {
     // If both command and search is specified.
     // Here it is not possible to identify what flag the user was actually trying to execute
     if (cla.command != NULL && cla.search != NULL) {
-        fprintf(stderr, "%s, %s\t\t%s\n", cla.command, cla.search, "ERROR: Use of both /<search> and \"<command>\" Flags.\nBoth of these commands cannot be used togather");
+        fprintf(stderr, "%s, %s\t\t%s\n", cla.command, cla.search, "ERROR: Use of both /<search> and \"<command>\" Flags.\nBoth of these flags cannot be used togather");
         print_usage(stderr);
         exit(1);
     }
@@ -155,7 +155,8 @@ void save_cmd(CommandLineArguments cla) {
 
     } else if (cla.search != NULL) {
         char* json_str = read_entire_file(FILE_NAME);
-        search_json(json_str, cla.search);
+        if (!search_json(json_str, cla.search))
+            printf("No Pattern Found\n");
     }
 }
 

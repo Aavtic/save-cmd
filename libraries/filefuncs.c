@@ -93,26 +93,42 @@ char* read_entire_file(char* filename) {
     return buffer;
 }
 
-bool  check_string_exists(char* string, char* pattern) {
+int check_string_exists(char* string, char* pattern) {
     size_t size_str = strlen(string);
     size_t size_pattern = strlen(pattern);
 
     if (size_pattern > size_str)
-        return false;
+        return -1;
 
     for (size_t i=0; i<=size_str - size_pattern; ++i) {
         if (strncmp(&string[i], pattern, size_pattern) == 0)
-            return true;
+            return i;
     }
 
-    return false;
+    return -1;
 }
 
-
-void print_command_info(char* binary_name, char* command, char* description) {
-    printf("Binary Name: %s\n", binary_name);
-    printf("Command    : %s\n", command);
-    printf("Description: %s\n", description);
+void print_command_info(char* command_information[3], int field_index, int position, int len_pattern) {
+    char* field_names[3] = {
+        "Binary Name",
+        "Command",
+        "Description"
+    };
+    for (int i=0; i<3; i++) {
+        char* field = command_information[i];
+        if (position != -1) {
+            if (i == field_index) {
+                printf("%s: ", field_names[i]);
+                printf("%.*s", position, field);
+                printf("\033[31;1;4m%.*s\033[0m", len_pattern, field+position);
+                printf("%s\n", field+(position+len_pattern));
+            } else {
+                printf("%s: %s\n", field_names[i], field);
+            }
+        } else {
+            printf("%s: %s\n", field_names[i], field);
+        }
+    }
 }
 
 bool search_json(char* json_str, char* pattern) {
@@ -161,8 +177,10 @@ bool search_json(char* json_str, char* pattern) {
                 char copy_str[strlen(json_field->valuestring) + 1];
                 strcpy(copy_str, json_field->valuestring);
                 copy_str[strlen(json_field->valuestring)] = '\0';
-                if (check_string_exists(copy_str, pattern)) {
-                    print_command_info(binary_name, command, description);
+                int position = check_string_exists(copy_str, pattern);
+                if (position != -1) {
+                    char* command_information[3] = {binary_name, command, description};
+                    print_command_info(command_information, i, position, strlen(pattern));
                     printf("\n");
                     found = true;
                     break;
@@ -210,7 +228,8 @@ void print_json(char* json_str) {
                 description = description_json->valuestring;
         }
 
-        print_command_info(binary_name, command, description);
+        char* command_information[3] = {binary_name, command, description};
+        print_command_info(command_information, -1, -1, -1);
         printf("\n");
 
         json = json->next;
