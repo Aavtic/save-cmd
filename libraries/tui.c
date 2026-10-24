@@ -656,18 +656,18 @@ static void draw_frame(App* app) {
                   "Press a to add your first command.", A_DIM);
     } else {
         draw_text(stdscr, rows - 3, 2, cols - 4,
-                  "Enter prints the selection to stdout; x runs it.", A_DIM);
+                  "Enter runs the selection; p prints it to stdout.", A_DIM);
     }
 
     const char* keys;
     if (app->searching) {
-        keys = "Type to filter  Enter use  Esc browse  Ctrl-U clear  "
+        keys = "Type to filter  Enter run  Esc browse  Ctrl-U clear  "
                "Up/Down move";
     } else if (g_utf8) {
-        keys = "q quit  \u2191\u2193 move  Enter use  y copy  x run  "
+        keys = "q quit  \u2191\u2193 move  Enter run  p print  y copy  "
                "a add  e edit  d delete  / search  ? help";
     } else {
-        keys = "q quit  Up/Down move  Enter use  y copy  x run  "
+        keys = "q quit  Up/Down move  Enter run  p print  y copy  "
                "a add  e edit  d delete  / search  ? help";
     }
     draw_text(stdscr, rows - 2, 2, cols - 4, keys, A_DIM);
@@ -953,7 +953,8 @@ static void show_help(App* app) {
         "  Up/Down      move through results",
         "  PgUp/PgDn    jump one page",
         "  g / G        first / last result",
-        "  Enter        print selected command and exit",
+        "  Enter        run the selected command",
+        "  p            print selected command to stdout and exit",
         "  y            copy selected command (OSC 52 clipboard)",
         "  x            run selected command",
         "  a            add a command",
@@ -1206,8 +1207,7 @@ static void choose_current(App* app, bool* quit, char** selected) {
     *quit = true;
 }
 
-static void handle_search_key(App* app, wint_t ch, bool* quit,
-                              char** selected) {
+static void handle_search_key(App* app, wint_t ch, bool* quit) {
     switch (ch) {
     case 27:
         app->searching = false;
@@ -1217,9 +1217,9 @@ static void handle_search_key(App* app, wint_t ch, bool* quit,
         break;
     case '\n':
     case '\r':
-        choose_current(app, quit, selected);
-        if (!*quit) {
-            app->searching = false;
+        app->searching = false;
+        if (app->visible_count > 0) {
+            run_command(app);
         }
         break;
     case 127:
@@ -1269,6 +1269,9 @@ static void handle_browse_key(App* app, wint_t ch, bool* quit,
         break;
     case '\n':
     case '\r':
+        run_command(app);
+        break;
+    case 'p':
         choose_current(app, quit, selected);
         break;
     case '/':
@@ -1319,8 +1322,7 @@ static void handle_browse_key(App* app, wint_t ch, bool* quit,
     }
 }
 
-static void handle_function_key(App* app, int key, bool* quit,
-                                char** selected) {
+static void handle_function_key(App* app, int key) {
     if (app->searching) {
         switch (key) {
         case KEY_UP:
@@ -1357,6 +1359,9 @@ static void handle_function_key(App* app, int key, bool* quit,
             break;
         case KEY_ENTER:
             app->searching = false;
+            if (app->visible_count > 0) {
+                run_command(app);
+            }
             break;
         case KEY_RESIZE:
             clear();
@@ -1389,7 +1394,7 @@ static void handle_function_key(App* app, int key, bool* quit,
         }
         break;
     case KEY_ENTER:
-        choose_current(app, quit, selected);
+        run_command(app);
         break;
     case KEY_BACKSPACE:
         if (app->query.len > 0) {
@@ -1510,9 +1515,9 @@ int tui_run(const char* db_path, const char* initial_query, char** selected,
             continue;
         }
         if (result == KEY_CODE_YES) {
-            handle_function_key(&app, (int)ch, &quit, &chosen);
+            handle_function_key(&app, (int)ch);
         } else if (app.searching) {
-            handle_search_key(&app, ch, &quit, &chosen);
+            handle_search_key(&app, ch, &quit);
         } else {
             handle_browse_key(&app, ch, &quit, &chosen);
         }

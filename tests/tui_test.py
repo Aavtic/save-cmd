@@ -160,23 +160,50 @@ check(code == 0, "plain TUI should exit 0 (got %s)" % code)
 check(b"Command:" in output, "details pane should be rendered")
 
 # ---------------------------------------------------------------------------
-# 2. Search from the command line and press Enter
+# 2. Search from the command line, leave search mode, and print with p
 # ---------------------------------------------------------------------------
 reset_db([("git restore --source HEAD~1 file.txt", "restore a file")])
-code, output = run_tui([b"\r"], argv=[BIN, "/restore"])
+code, output = run_tui([b"\x1b", b"p"], argv=[BIN, "/restore"])
 check(code == 0, "search TUI should exit 0")
 check(
     output.rstrip().endswith(b"git restore --source HEAD~1 file.txt"),
-    "Enter should print the selected command to stdout",
+    "p should print the selected command to stdout",
 )
 
 # ---------------------------------------------------------------------------
-# 3. Type a filter inside the TUI and press Enter
+# 3. Type a filter and press Enter to run the selected command
 # ---------------------------------------------------------------------------
-reset_db([("echo alpha", "first command")])
-code, output = run_tui([b"/", b"alpha", b"\r"])
-check(code == 0, "typed search should exit 0")
-check(output.rstrip().endswith(b"echo alpha"), "typed filter should select match")
+reset_db([("true", "typed search execution")])
+process, master = spawn([BIN, "--tui"])
+try:
+    startup, _ = wait_for(master, b"save-cmd", 3.0)
+    os.write(master, b"/")
+    time.sleep(0.2)
+    read_available(master, 0.1)
+    os.write(master, b"typed")
+    time.sleep(0.2)
+    read_available(master, 0.1)
+    os.write(master, b"\r")
+    time.sleep(0.3)
+    read_available(master, 0.2)
+    os.write(master, b"y")
+    run_output, seen = wait_for(master, b"Press Enter", 6.0)
+    check(seen, "Enter in search mode did not run the selected command")
+    os.write(master, b"\n")
+    time.sleep(0.3)
+    read_available(master, 0.2)
+    os.write(master, b"q")
+    process.wait(timeout=5.0)
+    final = read_available(master, 0.3)
+    combined = startup + run_output + final
+    check(process.returncode == 0, "typed search run should exit 0")
+    check(b"$ true" in combined, "command selected from typed search was not run")
+    check(b"[exit status 0]" in combined, "exit status was not reported")
+finally:
+    try:
+        os.close(master)
+    except OSError:
+        pass
 
 # ---------------------------------------------------------------------------
 # 4. No match: Enter leaves search mode, then quit
@@ -264,13 +291,13 @@ check(b"Copied to clipboard" in output, "copy status message missing")
 check(b"\x1b]52;c;" in output, "OSC 52 sequence missing")
 
 # ---------------------------------------------------------------------------
-# 10. Execute a command (confirm, wait, return, quit)
+# 10. Execute with Enter (confirm, wait, return, quit)
 # ---------------------------------------------------------------------------
 reset_db([("true", "always succeeds")])
 process, master = spawn([BIN, "--tui", "/always"])
 try:
     startup, _ = wait_for(master, b"save-cmd", 3.0)
-    os.write(master, b"x")
+    os.write(master, b"\r")
     time.sleep(0.3)
     read_available(master, 0.2)
     os.write(master, b"y")

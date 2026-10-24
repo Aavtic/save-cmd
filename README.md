@@ -14,7 +14,7 @@ save-cmd /restore            # opens the browser filtered to "restore"
 - **Save** any command with an optional description.
 - **Search** by binary name, command text, or description (case-insensitive).
 - **Browse** in a full-screen TUI: filter as you type, inspect details, navigate
-  with the keyboard, then print, copy, or run the selected command.
+  with the keyboard, then run, print, or copy the selected command.
 - **Manage** entries without editing JSON: add, edit, and delete from the TUI.
 - **Scriptable** non-interactive modes: plain listing, print the first match, or
   execute the first match.
@@ -114,7 +114,7 @@ scripts and pagers working.
 │ Description: restore a file                                         │
 │ Saved: 2026-10-24 08:36:58   Binary: git   ID: 1792811218           │
 ├─────────────────────────────────────────────────────────────────────┤
-│ q quit  ↑↓ move  Enter use  y copy  x run  a add  e edit  d delete  │
+│ q quit  ↑↓ move  Enter run  p print  y copy  a add  e edit  d delete │
 └─────────────────────────────────────────────────────────────────────┘
 ```
 
@@ -123,7 +123,8 @@ scripts and pagers working.
 | Key | Action |
 | --- | --- |
 | `/` or `s` | start filtering (the filter applies as you type) |
-| `Enter` | print the selected command to stdout and exit |
+| `Enter` | run the selected command (confirmation prompt) and stay in the TUI |
+| `p` | print the selected command to stdout and exit |
 | `Esc` | leave search mode (filter is kept); with an active filter, clear it; otherwise quit |
 | `Up` / `Down`, `j` / `k` | move through results |
 | `PgUp` / `PgDn` | move one page |
@@ -137,13 +138,15 @@ scripts and pagers working.
 | `?` | help overlay |
 | `q` | quit |
 
-While filtering, `Enter` selects the highlighted result immediately; `Esc`
-leaves the filter active so you can browse with the arrows. Filtering is
-case-insensitive and whitespace-separated terms all have to match somewhere in
-the binary name, command, or description.
+While filtering, `Enter` runs the highlighted result; `Esc` leaves the filter
+active so you can browse with the arrows. Filtering is case-insensitive and
+whitespace-separated terms all have to match somewhere in the binary name,
+command, or description.
 
-`x` runs the command with `/bin/sh -c` after suspending the TUI. When it
-finishes, press Enter to return to the browser.
+`Enter` (or `x`) runs the command with `/bin/sh -c` after a confirmation prompt
+and suspending the TUI. When it finishes, press Enter to return to the browser.
+Use `p` when you want to print a command to stdout for shell substitution
+instead of running it.
 
 `y` emits an OSC 52 escape sequence. Most modern terminals (kitty, alacritty,
 wezterm, foot, iTerm2, Windows Terminal, recent xterm) honor it; some require
