@@ -1,0 +1,11 @@
+/save-cmd
+/save-cmd.sh
+/bin/
+/build/
+/build-asan/
+/commands.json
+/commands.json.lock
+*.o
+*.d
+*.tmp.*
+__pycache__/
