@@ -42,7 +42,8 @@ static void print_usage(FILE* out) {
             "Usage:\n"
             "  save-cmd                          open the browser (list when piped)\n"
             "  save-cmd <command> [-d <desc>]    save a command\n"
-            "  save-cmd /<term>                  browse or filter saved commands\n"
+            "  save-cmd /<term>                  print matching commands\n"
+            "  save-cmd -t /<term>               open the browser filtered to <term>\n"
             "  save-cmd -i /<term>               print the first matching command\n"
             "  save-cmd -x /<term> [-y]          run the first matching command\n"
             "  save-cmd -l [/<term>]             plain listing (never opens the TUI)\n"
@@ -439,7 +440,9 @@ int main(int argc, char** argv) {
     database_warning(&db, db_path);
 
     bool interactive = isatty(STDIN_FILENO) && isatty(STDOUT_FILENO);
-    bool want_tui = !options.list && interactive;
+    /* Only a bare `save-cmd` opens the browser automatically. Searches and
+     * other modes stay in the terminal; --tui remains an explicit opt-in. */
+    bool want_tui = !options.list && !options.search_set && interactive;
     if (options.tui) {
         if (!tui_available()) {
             fprintf(stderr,
