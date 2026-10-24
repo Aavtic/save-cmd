@@ -160,10 +160,36 @@ check(code == 0, "plain TUI should exit 0 (got %s)" % code)
 check(b"Command:" in output, "details pane should be rendered")
 
 # ---------------------------------------------------------------------------
-# 2. Search from the command line, leave search mode, and print with p
+# 2. A search in an interactive terminal must not open the TUI
 # ---------------------------------------------------------------------------
 reset_db([("git restore --source HEAD~1 file.txt", "restore a file")])
-code, output = run_tui([b"\x1b", b"p"], argv=[BIN, "/restore"])
+process, master = spawn([BIN, "/restore"])
+try:
+    output, seen = wait_for(master, b"Binary Name:", 3.0)
+    try:
+        process.wait(timeout=3.0)
+        exited = True
+    except subprocess.TimeoutExpired:
+        process.kill()
+        process.wait()
+        exited = False
+    output += read_available(master, 0.3)
+    check(seen, "search should print plain output")
+    check(exited, "a search must not open the TUI")
+    check(process.returncode == 0, "search exit 0 (got %s)" % process.returncode)
+    check(b"Command:" in output, "search output should include the command field")
+    check(b"file.txt" in output, "search output should include the matching command")
+finally:
+    try:
+        os.close(master)
+    except OSError:
+        pass
+
+# ---------------------------------------------------------------------------
+# 2b. Explicitly open a filtered TUI, leave search mode, and print with p
+# ---------------------------------------------------------------------------
+reset_db([("git restore --source HEAD~1 file.txt", "restore a file")])
+code, output = run_tui([b"\x1b", b"p"], argv=[BIN, "--tui", "/restore"])
 check(code == 0, "search TUI should exit 0")
 check(
     output.rstrip().endswith(b"git restore --source HEAD~1 file.txt"),

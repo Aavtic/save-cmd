@@ -6,7 +6,8 @@ single JSON database.
 
 ```text
 save-cmd "git restore --source HEAD~1 path/to/file" -d "restore one file"
-save-cmd /restore            # opens the browser filtered to "restore"
+save-cmd /restore            # print matches in the terminal
+save-cmd -t /restore         # open the browser filtered to "restore"
 ```
 
 ## Features
@@ -94,13 +95,14 @@ save-cmd -- "/usr/bin/env"
 
 ```sh
 save-cmd                 # full TUI
-save-cmd /restore        # TUI filtered to "restore"
-save-cmd --tui /docker   # force the TUI
+save-cmd /restore        # print matches in the terminal
+save-cmd --tui /restore  # open the TUI filtered to "restore"
 ```
 
-The TUI opens automatically when both stdin and stdout are terminals. When the
-output is piped or redirected, `save-cmd` prints plain text instead, which keeps
-scripts and pagers working.
+The TUI opens automatically only for a bare `save-cmd` when both stdin and
+stdout are terminals. Searches and all other modes stay in the terminal; pass
+`-t`/`--tui` to open the browser explicitly. When output is piped or redirected,
+`save-cmd` also prints plain text, which keeps scripts and pagers working.
 
 ```text
 ┌ save-cmd ───────────────────────────────────────────── 12 commands ┐
@@ -155,6 +157,7 @@ enabling clipboard access.
 ### Non-interactive use
 
 ```sh
+save-cmd /restore            # print matches
 save-cmd -l                  # list every command
 save-cmd -l /restore         # list matches
 save-cmd -i /restore         # print the first matching command
